@@ -1,0 +1,6 @@
+# Definition of Done, shown by `tbdflow commit` before each commit.
+checklist:
+  - "`python verify.py vectors/vectors.jsonl` passes."
+  - "`python generate.py` leaves vectors/vectors.jsonl unchanged (deterministic)."
+  - "Changes to reference.py are intentional and match the COBS/COBS-R spec."
+  - "Relevant documentation (README, spec) is updated."
