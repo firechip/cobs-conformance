@@ -19,12 +19,12 @@ jobs:
         with:
           python-version: "3.13"
       - name: Vectors are self-consistent with the reference
-        run: python verify.py vectors/vectors.jsonl
+        run: python verify.py
       - name: Vectors are up to date (deterministic regeneration)
         run: |
           python generate.py
-          git diff --exit-code vectors/vectors.jsonl \
-            || (echo "vectors.jsonl is stale; run 'python generate.py'"; exit 1)
+          git diff --exit-code vectors/ \
+            || (echo "vectors are stale; run 'python generate.py'"; exit 1)
 
   lint:
     name: Lint (ruff)

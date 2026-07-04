@@ -39,6 +39,41 @@ The set covers every single-byte value, zero/non-zero runs around the 254-byte
 block boundaries, the full `0x00..0xFF` ramp, and a large deterministic
 pseudo-random sample biased toward edge cases.
 
+### Extended vectors
+
+Two companion files cover the capabilities beyond the plain `0x00` codec (all
+fields are still lowercase hex).
+
+`vectors/sentinel.jsonl` — the **configurable-sentinel** codec, where an
+arbitrary byte (not `0x00`) is the value the encoding avoids. Encoding is
+XOR-over-the-finished-stream, so a `sentinel` of `00` equals the plain codec:
+
+```json
+{"decoded":"1100aa","sentinel":"aa","cobs":"a8bba800","cobsr":"a8bb00"}
+```
+
+| Field | Meaning |
+| ----- | ------- |
+| `decoded` | the original bytes (hex) |
+| `sentinel` | the delimiter byte the encoding avoids (one hex byte) |
+| `cobs` / `cobsr` | the sentinel encoding of `decoded` (hex) |
+
+`vectors/errors.jsonl` — decode **outcomes** for raw, often malformed frames, so
+error behaviour is conformance-checked too:
+
+```json
+{"encoded":"0511","cobs":null,"cobsr":"1105"}
+```
+
+| Field | Meaning |
+| ----- | ------- |
+| `encoded` | a raw frame to decode (hex) |
+| `cobs` | basic-COBS decode result (hex), or `null` if decoding must fail |
+| `cobsr` | COBS/R decode result (hex), or `null` if decoding must fail |
+
+The same bytes can be valid COBS/R (a reduced final block) yet invalid basic
+COBS (a truncated frame) — the example above is exactly that divergence.
+
 ## Conform your implementation
 
 For every line, decode the hex fields and assert:

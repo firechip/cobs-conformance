@@ -121,3 +121,38 @@ def cobsr_decode(in_bytes):
             else:
                 break
     return bytes(out_bytes)
+
+
+def _xor(data, sentinel):
+    """XOR every byte of ``data`` with ``sentinel`` (a no-op when sentinel==0)."""
+    if sentinel == 0:
+        return bytes(data)
+    return bytes(b ^ sentinel for b in data)
+
+
+# Configurable-sentinel variants. A single, arbitrary "sentinel" byte replaces
+# 0x00 as the value the encoding avoids (so it can delimit frames). The scheme is
+# XOR-over-the-finished-encoding: encode/decode normally, then XOR the whole byte
+# stream with the sentinel. ``sentinel == 0`` is byte-for-byte identical to the
+# plain codec. Every Firechip implementation uses this exact method, which is why
+# the sentinel encoding stays byte-identical across languages.
+
+
+def cobs_encode_with_sentinel(in_bytes, sentinel):
+    """Encode ``in_bytes`` with basic COBS using an arbitrary ``sentinel`` byte."""
+    return _xor(cobs_encode(in_bytes), sentinel)
+
+
+def cobs_decode_with_sentinel(in_bytes, sentinel):
+    """Decode basic-COBS ``in_bytes`` encoded with an arbitrary ``sentinel``."""
+    return cobs_decode(_xor(in_bytes, sentinel))
+
+
+def cobsr_encode_with_sentinel(in_bytes, sentinel):
+    """Encode ``in_bytes`` with COBS/R using an arbitrary ``sentinel`` byte."""
+    return _xor(cobsr_encode(in_bytes), sentinel)
+
+
+def cobsr_decode_with_sentinel(in_bytes, sentinel):
+    """Decode COBS/R ``in_bytes`` encoded with an arbitrary ``sentinel``."""
+    return cobsr_decode(_xor(in_bytes, sentinel))
