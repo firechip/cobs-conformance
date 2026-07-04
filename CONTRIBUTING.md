@@ -10,6 +10,7 @@ Pure Python 3, no dependencies:
 ```console
 python verify.py vectors/vectors.jsonl   # check vectors against reference.py
 python generate.py                        # regenerate vectors (deterministic)
+ruff check .                             # lint the Python (also enforced in CI)
 ```
 
 `reference.py` is the source of truth. If you change it, regenerate the vectors

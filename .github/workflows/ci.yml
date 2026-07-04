@@ -25,3 +25,16 @@ jobs:
           python generate.py
           git diff --exit-code vectors/vectors.jsonl \
             || (echo "vectors.jsonl is stale; run 'python generate.py'"; exit 1)
+
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install ruff
+        run: pip install ruff==0.15.20
+      - name: Run ruff
+        run: ruff check .
