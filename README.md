@@ -115,20 +115,20 @@ How the family compares with Craig McQueen's reference implementations and other
 ecosystem crates. Legend: ✓ supported · ◐ partial · ○ not supported · · not
 applicable.
 
-| Feature | `cobs_codec_rs` | `cobs_codec` · Dart | `cobs_codec` · Kotlin | `CobsCodec` · Swift | cobs-c | cobs · Python | libcobs | cobs · jamesmunns | cobs-codec · alvra | GlassGem · Swift |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Basic COBS | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| COBS/R (reduced) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ○ |
-| Configurable sentinel | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ | ○ |
-| In-place decode | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ○ | ○ |
-| Incremental / streaming decode | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ (async) | ○ |
-| Frame delimiting | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ◐ | ✓ | ◐ |
-| Size helpers (max length) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ✓ | ○ | ○ |
-| Typed error reporting | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ◐ | ✓ | ✓ | ○ |
-| `no_std` / freestanding | ✓ | · | · | · | ✓ | ○ | ✓ | ✓ | ○ | · |
-| Zero dependencies | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ✓ |
-| Native framework hooks | ◐ (serde/defmt) | ✓ (`dart:convert`) | ✓ (java.io/Flow) | ○ | ○ | ○ | ○ | ◐ (serde/defmt) | ✓ (tokio-util) | ○ |
-| Verified against these vectors | ✓ | ✓ | ✓ | ✓ | source | source | ○ | ○ | ○ | ○ |
+| Feature | `cobs_codec_rs` | `cobs_codec` · Dart | `cobs_codec` · Kotlin | `CobsCodec` · Swift | cobs-c | cobs · Python | libcobs | cobs · jamesmunns | cobs-codec · alvra | GlassGem · Swift | SerialFiller · C++ | KiTools · Python |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Basic COBS | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COBS/R (reduced) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ○ | ○ | ○ |
+| Configurable sentinel | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ | ○ | ○ | ○ |
+| In-place decode | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ○ | ○ | ○ | ○ |
+| Incremental / streaming decode | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ (async) | ○ | ○ | ✓ |
+| Frame delimiting | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ◐ | ✓ | ◐ | ○ | ◐ |
+| Size helpers (max length) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ✓ | ○ | ○ | ○ | ○ |
+| Typed error reporting | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ◐ | ✓ | ✓ | ○ | ✓ | ◐ |
+| `no_std` / freestanding | ✓ | · | · | · | ✓ | ○ | ✓ | ✓ | ○ | · | ○ | · |
+| Zero dependencies | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ✓ | ✓ | ○ |
+| Native framework hooks | ◐ (serde/defmt) | ✓ (`dart:convert`) | ✓ (java.io/Flow) | ○ | ○ | ○ | ○ | ◐ (serde/defmt) | ✓ (tokio-util) | ○ | ○ | ○ |
+| Verified against these vectors | ✓ | ✓ | ✓ | ✓ | source | source | ○ | ○ | ○ | ○ | ○ | ○ |
 
 The first four columns are the Firechip family. **cobs-c** and **cobs** (Python)
 are McQueen's references and the *source* of these vectors. **libcobs** is a
@@ -137,7 +137,10 @@ Rust crate, rich but with no COBS/R and not dependency-free. **cobs-codec**
 (alvra) is an async Tokio framing codec. **GlassGem** (armadsen) is a third-party
 Swift `Data` extension implementing basic COBS only — Foundation-based, with no
 COBS/R and no configurable delimiter (both on its roadmap), which the family's
-stdlib-only `CobsCodec` provides.
+stdlib-only `CobsCodec` provides. **SerialFiller** (gbmhunter) and **KiTools**
+(Kirale) embed basic COBS inside larger tools — a C++ serial-framing library and
+a Python Thread / 802.15.4 CLI — rather than shipping it as a reusable package;
+KiTools is notable for a byte-for-byte streaming decoder.
 
 ## License
 
