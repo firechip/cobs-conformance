@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify conformance vectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Vectors are self-consistent with the reference
+        run: python verify.py vectors/vectors.jsonl
+      - name: Vectors are up to date (deterministic regeneration)
+        run: |
+          python generate.py
+          git diff --exit-code vectors/vectors.jsonl \
+            || (echo "vectors.jsonl is stale; run 'python generate.py'"; exit 1)
