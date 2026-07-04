@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="COBS — the Firechip family: one byte-stuffing algorithm, byte-identical in Rust, Dart, Kotlin, and Swift, bound by one shared conformance suite.">
+<title>COBS — the Firechip family</title>
+<style>
+  :root {
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+    --ground: #eaeef2;
+    --surface: #ffffff;
+    --surface-2: #f4f7f9;
+    --ink: #16232e;
+    --muted: #566472;
+    --faint: #93a1ad;
+    --hair: #d9e0e7;
+    --accent: #0d7c86;
+    --accent-ink: #0a5a62;
+    --accent-tint: rgba(13, 124, 134, 0.08);
+    --accent-edge: rgba(13, 124, 134, 0.30);
+    --zero: #c0492f;
+    --shadow: 0 1px 2px rgba(20, 35, 46, 0.05), 0 14px 40px rgba(20, 35, 46, 0.08);
+
+    --rust: #c56a3a;
+    --dart: #0175c2;
+    --kotlin: #7f52ff;
+    --swift: #f05138;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0b131c;
+      --surface: #131e29;
+      --surface-2: #0f1a24;
+      --ink: #e7eef4;
+      --muted: #8b99a8;
+      --faint: #5a6a78;
+      --hair: #223140;
+      --accent: #45bcc4;
+      --accent-ink: #7fd6db;
+      --accent-tint: rgba(63, 182, 191, 0.12);
+      --accent-edge: rgba(63, 182, 191, 0.36);
+      --zero: #e8776a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 44px rgba(0, 0, 0, 0.45);
+      --rust: #e0a07d;
+      --dart: #4aa5e0;
+      --kotlin: #a98cff;
+      --swift: #ff7d68;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0b131c; --surface: #131e29; --surface-2: #0f1a24; --ink: #e7eef4;
+    --muted: #8b99a8; --faint: #5a6a78; --hair: #223140; --accent: #45bcc4;
+    --accent-ink: #7fd6db; --accent-tint: rgba(63, 182, 191, 0.12);
+    --accent-edge: rgba(63, 182, 191, 0.36); --zero: #e8776a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 44px rgba(0, 0, 0, 0.45);
+    --rust: #e0a07d; --dart: #4aa5e0; --kotlin: #a98cff; --swift: #ff7d68;
+  }
+  :root[data-theme="light"] {
+    --ground: #eaeef2; --surface: #ffffff; --surface-2: #f4f7f9; --ink: #16232e;
+    --muted: #566472; --faint: #93a1ad; --hair: #d9e0e7; --accent: #0d7c86;
+    --accent-ink: #0a5a62; --accent-tint: rgba(13, 124, 134, 0.08);
+    --accent-edge: rgba(13, 124, 134, 0.30); --zero: #c0492f;
+    --shadow: 0 1px 2px rgba(20, 35, 46, 0.05), 0 14px 40px rgba(20, 35, 46, 0.08);
+    --rust: #c56a3a; --dart: #0175c2; --kotlin: #7f52ff; --swift: #f05138;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 4vw, 2.5rem) 3rem; }
+
+  a { color: var(--accent-ink); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+  code { font-family: var(--mono); }
+
+  /* hero */
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--accent-ink);
+    display: flex; align-items: center; gap: 0.6rem; margin: 0 0 1.2rem;
+  }
+  .eyebrow::before { content: ""; width: 1.8rem; height: 2px; background: var(--accent); }
+  h1 {
+    font-family: var(--mono); font-weight: 600;
+    font-size: clamp(1.9rem, 5.2vw, 3.1rem); line-height: 1.06;
+    letter-spacing: -0.02em; text-wrap: balance; margin: 0 0 1rem;
+  }
+  h1 .hl { color: var(--accent); }
+  .lede { font-size: 1.1rem; color: var(--muted); max-width: 62ch; margin: 0 0 2rem; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* byte strip demo */
+  .demo {
+    border: 1px solid var(--hair); border-radius: 14px; background: var(--surface);
+    box-shadow: var(--shadow); padding: 1.3rem 1.4rem; margin: 0 0 2.6rem;
+    overflow-x: auto;
+  }
+  .demo-row { display: flex; align-items: center; gap: 0.9rem; }
+  .demo-row + .demo-row { margin-top: 0.9rem; }
+  .demo-label {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); width: 5.5rem; flex: none; text-align: right;
+  }
+  .bytes { display: flex; gap: 0.4rem; font-family: var(--mono); }
+  .b {
+    min-width: 2.1rem; text-align: center; padding: 0.4rem 0.35rem; border-radius: 7px;
+    background: var(--surface-2); border: 1px solid var(--hair); font-size: 0.92rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .b.zero { color: var(--zero); border-color: color-mix(in srgb, var(--zero) 45%, var(--hair)); font-weight: 700; }
+  .b.code { color: var(--accent-ink); border-color: var(--accent-edge); background: var(--accent-tint); }
+  .b.delim { color: var(--accent-ink); border-color: var(--accent-edge); background: var(--accent-tint); font-weight: 700; }
+  .demo-note { font-size: 0.86rem; color: var(--muted); margin: 1.1rem 0 0; }
+  .demo-note b { color: var(--ink); font-weight: 600; }
+
+  /* section headings */
+  h2 {
+    font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+    margin: 2.8rem 0 1.2rem; display: flex; align-items: baseline; gap: 0.7rem;
+  }
+  h2 .count { color: var(--faint); font-size: 0.72rem; }
+
+  /* member cards */
+  .members { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+  .card {
+    border: 1px solid var(--hair); border-top: 3px solid var(--lang, var(--accent));
+    border-radius: 12px; background: var(--surface); box-shadow: var(--shadow);
+    padding: 1.2rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .card-lang {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--lang, var(--accent)); font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;
+  }
+  .card-lang::before { content: ""; width: 0.62rem; height: 0.62rem; border-radius: 50%; background: var(--lang, var(--accent)); }
+  .card-reg { font-size: 0.7rem; color: var(--faint); font-family: var(--mono); }
+  .card-name { font-family: var(--mono); font-size: 1.02rem; font-weight: 600; margin: 0; }
+  .card-desc { font-size: 0.88rem; color: var(--muted); flex: 1; margin: 0; }
+  .card pre {
+    font-family: var(--mono); font-size: 0.78rem; background: var(--surface-2);
+    border: 1px solid var(--hair); border-radius: 8px; padding: 0.55rem 0.7rem; margin: 0;
+    overflow-x: auto; color: var(--ink);
+  }
+  .card-links { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; font-size: 0.8rem; font-family: var(--mono); }
+  .card-links a { text-decoration: none; }
+  .card-links a:hover { text-decoration: underline; }
+
+  /* conformance band */
+  .band {
+    margin-top: 1rem; border: 1px solid var(--accent-edge); border-radius: 12px;
+    background: linear-gradient(180deg, var(--accent-tint), transparent), var(--surface);
+    box-shadow: var(--shadow); padding: 1.4rem 1.5rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; justify-content: space-between;
+  }
+  .band-text { max-width: 62ch; }
+  .band-text h3 { font-family: var(--mono); font-size: 1rem; margin: 0 0 0.35rem; }
+  .band-text p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .band-stat { font-family: var(--mono); text-align: center; }
+  .band-stat .n { display: block; font-size: 1.7rem; font-weight: 700; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .band-stat .l { font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+
+  /* why section */
+  .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .why-item { border: 1px solid var(--hair); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); padding: 1.2rem 1.25rem; }
+  .why-item h3 { font-family: var(--mono); font-size: 0.92rem; margin: 0 0 0.5rem; }
+  .why-item p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .why-item .eq {
+    font-family: var(--mono); font-size: 0.92rem; color: var(--accent-ink);
+    background: var(--accent-tint); border: 1px solid var(--accent-edge);
+    border-radius: 7px; padding: 0.15rem 0.5rem; display: inline-block; margin-top: 0.55rem;
+  }
+  .why-item .cobsr {
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--accent-ink);
+    background: var(--accent-tint); border: 1px solid var(--accent-edge);
+    border-radius: 999px; padding: 0.05rem 0.45rem; vertical-align: 0.15em; margin-left: 0.35rem;
+  }
+
+  /* comparison tables */
+  .tbl-wrap {
+    overflow-x: auto; border: 1px solid var(--hair); border-radius: 12px;
+    background: var(--surface); box-shadow: var(--shadow);
+  }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: 0.87rem; }
+  table.cmp th, table.cmp td { text-align: left; padding: 0.72rem 1rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  table.cmp thead th {
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--muted); background: var(--surface-2); white-space: nowrap;
+  }
+  table.cmp tbody tr:last-child td { border-bottom: none; }
+  table.cmp .tech { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+  table.cmp tr.win { background: var(--accent-tint); }
+  table.cmp tr.win .tech { color: var(--accent-ink); }
+  .good { color: var(--accent-ink); font-weight: 600; }
+  .bad { color: var(--zero); }
+  .prose { font-size: 0.95rem; color: var(--muted); max-width: 66ch; margin: -0.4rem 0 1.2rem; }
+  .prose strong { color: var(--ink); }
+
+  /* footer */
+  .foot {
+    margin-top: 2.8rem; padding-top: 1.3rem; border-top: 1px solid var(--hair);
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; align-items: baseline; justify-content: space-between;
+  }
+  .foot-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; font-family: var(--mono); font-size: 0.82rem; }
+  .foot-links a { text-decoration: none; }
+  .foot-links a:hover { text-decoration: underline; }
+  .foot-meta { font-size: 0.76rem; color: var(--faint); font-family: var(--sans); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Firechip · open source</p>
+  <h1>One algorithm. Five languages. <span class="hl">Byte-identical.</span></h1>
+  <p class="lede">
+    <strong>Consistent Overhead Byte Stuffing (COBS)</strong> turns any byte string
+    into one with no <code>0x00</code> bytes, so a single <code>0x00</code> can
+    delimit packets on a serial, USB, or BLE link. The Firechip family implements
+    it — plus COBS/R, a configurable delimiter, and framing — in Rust, Dart,
+    Kotlin, and Swift, all proven identical by one shared set of test vectors.
+  </p>
+
+  <div class="demo" role="img" aria-label="COBS encoding of the bytes 11 00 22 into 02 11 02 22 plus a trailing zero delimiter">
+    <div class="demo-row">
+      <span class="demo-label">your data</span>
+      <span class="bytes"><span class="b">11</span><span class="b zero">00</span><span class="b">22</span></span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">on the wire</span>
+      <span class="bytes"><span class="b code">02</span><span class="b">11</span><span class="b code">02</span><span class="b">22</span><span class="b delim">00</span></span>
+    </div>
+    <p class="demo-note">
+      COBS replaces the interior <b class="hl" style="color:var(--zero)">zero</b> with a
+      <b style="color:var(--accent-ink)">length code</b>, leaving the payload zero-free — so the trailing
+      <b style="color:var(--accent-ink)">0x00</b> is an unambiguous frame boundary. Overhead is at most one
+      byte per 254.
+    </p>
+  </div>
+
+  <h2>The family <span class="count">4 libraries + 1 source of truth</span></h2>
+  <div class="members">
+
+    <div class="card" style="--lang: var(--rust);">
+      <div class="card-head"><span class="card-lang">Rust</span><span class="card-reg">crates.io</span></div>
+      <p class="card-name">cobs_codec_rs</p>
+      <p class="card-desc"><code>#![no_std]</code>, zero-dependency crate for embedded and serial work; optional <code>serde</code> / <code>defmt</code>.</p>
+      <pre>cargo add cobs_codec_rs</pre>
+      <div class="card-links">
+        <a href="https://crates.io/crates/cobs_codec_rs">crates.io</a>
+        <a href="https://docs.rs/cobs_codec_rs">docs.rs</a>
+        <a href="https://github.com/firechip/cobs_codec_rs">source</a>
+      </div>
+    </div>
+
+    <div class="card" style="--lang: var(--dart);">
+      <div class="card-head"><span class="card-lang">Dart</span><span class="card-reg">pub.dev</span></div>
+      <p class="card-name">cobs_codec</p>
+      <p class="card-desc">All-platform, <code>dart:convert</code>-native <code>Codec</code>s with stream framing for Flutter and CLI.</p>
+      <pre>dart pub add cobs_codec</pre>
+      <div class="card-links">
+        <a href="https://pub.dev/packages/cobs_codec">pub.dev</a>
+        <a href="https://github.com/firechip/cobs_codec">source</a>
+      </div>
+    </div>
+
+    <div class="card" style="--lang: var(--kotlin);">
+      <div class="card-head"><span class="card-lang">Kotlin</span><span class="card-reg">GH Packages · AAR</span></div>
+      <p class="card-name">cobs_codec</p>
+      <p class="card-desc">Pure-Kotlin for Android / JVM, with <code>java.io</code> streams and a coroutines <code>Flow</code> API.</p>
+      <pre>implementation("dev.firechip:cobs_codec:1.1.0")</pre>
+      <div class="card-links">
+        <a href="https://github.com/firechip/cobs_codec_kt">source</a>
+        <a href="https://github.com/firechip/cobs_codec_kt/releases">releases (.aar)</a>
+      </div>
+    </div>
+
+    <div class="card" style="--lang: var(--swift);">
+      <div class="card-head"><span class="card-lang">Swift</span><span class="card-reg">Swift Package Manager</span></div>
+      <p class="card-name">CobsCodec</p>
+      <p class="card-desc">Stdlib-only (no Foundation) — macOS, iOS, tvOS, watchOS, Linux, and embedded Swift.</p>
+      <pre>.package(url: ".../cobs_codec_swift.git", from: "1.0.0")</pre>
+      <div class="card-links">
+        <a href="https://github.com/firechip/cobs_codec_swift">source</a>
+        <a href="https://swiftpackageindex.com/firechip/cobs_codec_swift">Swift Package Index</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="band">
+    <div class="band-text">
+      <h3>cobs-conformance — the single source of truth</h3>
+      <p>
+        One deterministic set of JSON-Lines vectors (basic COBS, COBS/R, configurable-sentinel, and
+        decode-error cases). Every member checks itself against these in CI, which is <em>why</em> the four
+        libraries produce byte-for-byte identical output. Any implementation can prove conformance too.
+      </p>
+      <p style="margin-top:0.6rem;"><a href="https://github.com/firechip/cobs-conformance">github.com/firechip/cobs-conformance</a> · <a href="https://github.com/firechip/cobs-conformance#feature-comparison">feature comparison ›</a></p>
+    </div>
+    <div class="band-stat"><span class="n">2,629</span><span class="l">shared vectors</span></div>
+  </div>
+
+  <h2>Why COBS on a wire</h2>
+  <div class="why">
+    <div class="why-item">
+      <h3>Self-synchronising</h3>
+      <p>Lose a byte to line noise and the receiver just waits for the next <code>0x00</code> — it resyncs on the very next packet instead of losing the stream, the way length-prefixing does.</p>
+    </div>
+    <div class="why-item">
+      <h3>Bounded overhead</h3>
+      <p>Overhead is data-independent — at most one byte per 254, where escape schemes (PPP, SLIP) can double a packet in the worst case.</p>
+      <span class="eq">max = n + ⌈n / 254⌉</span>
+    </div>
+    <div class="why-item">
+      <h3>Tiny footprint</h3>
+      <p>Encode and decode need no allocation and run in-place or into a fixed buffer — the gold standard for MCUs (Arduino, STM32, ESP32) talking to a host, e.g. framing Protobuf.</p>
+    </div>
+  </div>
+
+  <h2>Where it runs <span class="count">embedded &amp; serial</span></h2>
+  <div class="why">
+    <div class="why-item">
+      <h3>DMA-driven UART</h3>
+      <p>The CPU sleeps while DMA collects bytes; a character-match or idle-line interrupt on <code>0x00</code> wakes it only for <em>complete</em> frames. Drop a byte to noise and alignment returns on the very next <code>0x00</code>.</p>
+    </div>
+    <div class="why-item">
+      <h3>MCU → host telemetry</h3>
+      <p>Binary structs — Protobuf, MessagePack — are riddled with <code>0x00</code> (a 16-bit <code>256</code> is <code>01 00</code>), so a raw delimiter is impossible. COBS frames them at ~0.4% where escape stuffing can hit 100%.</p>
+    </div>
+    <div class="why-item">
+      <h3>RS-485 multidrop</h3>
+      <p>On a shared bus, a node seeing a run with no <code>0x00</code> knows it is mid-transmission and stays quiet; the next <code>0x00</code> marks a fresh, addressable command frame.</p>
+    </div>
+    <div class="why-item">
+      <h3>Bootloaders &amp; OTA</h3>
+      <p>Firmware images are zero-heavy. COBS gives the bootloader clean per-block boundaries to CRC-verify and flash a sector safely, even over a noisy link.</p>
+    </div>
+    <div class="why-item">
+      <h3>Low-power wireless <span class="cobsr">COBS/R</span></h3>
+      <p>BLE / Zigbee bridges stream tiny packets millions of times a day. COBS/R drops the final byte whenever it can — measurably less radio time and battery per packet.</p>
+    </div>
+  </div>
+
+  <h2>Framing, compared</h2>
+  <div class="tbl-wrap">
+    <table class="cmp">
+      <thead>
+        <tr><th>Technique</th><th>Worst-case overhead</th><th>CPU</th><th>Resync after a lost byte</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tech">Length-prefix header</td>
+          <td><span class="good">0%</span> — but <span class="bad">desyncs catastrophically</span> if a byte drops</td>
+          <td>Low</td>
+          <td class="bad">Poor — needs a timeout</td>
+        </tr>
+        <tr>
+          <td class="tech">Escape stuffing (PPP / HDLC)</td>
+          <td class="bad">up to 100%</td>
+          <td>Higher — variable loop</td>
+          <td>Fast — next delimiter</td>
+        </tr>
+        <tr class="win">
+          <td class="tech">COBS / COBS/R</td>
+          <td class="good">~0.4% — 1 byte / 254</td>
+          <td>Low — look-ahead pointer</td>
+          <td class="good">Instant — next 0x00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Honest about the alternatives</h2>
+  <p class="prose">COBS is a mathematical bound — about <strong>0.39%</strong> worst case from a one-byte look-ahead — so nothing beats it on raw overhead for byte streams. But it isn't the only right answer in 2026:</p>
+  <div class="tbl-wrap">
+    <table class="cmp">
+      <thead>
+        <tr><th>If you need…</th><th>Reach for</th><th>Because</th></tr>
+      </thead>
+      <tbody>
+        <tr class="win">
+          <td>Maximum bandwidth efficiency</td>
+          <td class="tech">COBS / COBS/R</td>
+          <td>Undefeated overhead over variable-length streams.</td>
+        </tr>
+        <tr>
+          <td>Gigabit-rate streaming</td>
+          <td class="tech">Multi-COBS</td>
+          <td>SIMD / parallel pipelines for high-end MCUs and FPGAs.</td>
+        </tr>
+        <tr>
+          <td>Zero CPU spent on framing</td>
+          <td class="tech">Length-prefix + idle line</td>
+          <td>Hardware UART timeout (RTO) and DMA do it all.</td>
+        </tr>
+        <tr>
+          <td>Self-delimiting IoT structs</td>
+          <td class="tech">Concatenated CBOR</td>
+          <td>Serialization and framing in one binary standard.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <div class="foot-links">
+      <a href="https://github.com/firechip">github.com/firechip</a>
+      <a href="https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing">COBS (Wikipedia)</a>
+      <a href="https://firechip.dev">firechip.dev</a>
+    </div>
+    <span class="foot-meta">Cheshire &amp; Baker, IEEE/ACM Trans. Netw. 7(2), 1999 · COBS/R by Craig McQueen · MIT</span>
+  </div>
+</div>
+</body>
+</html>
