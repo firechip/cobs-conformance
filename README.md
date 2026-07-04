@@ -107,6 +107,7 @@ The Firechip COBS family, all verified byte-identical against these vectors:
 | Rust | [`cobs_codec_rs`](https://crates.io/crates/cobs_codec_rs) ([repo](https://github.com/firechip/cobs_codec_rs)) |
 | Dart / Flutter | [`cobs_codec`](https://pub.dev/packages/cobs_codec) ([repo](https://github.com/firechip/cobs_codec)) |
 | Kotlin / Android | [`cobs_codec`](https://github.com/firechip/cobs_codec_kt) (Maven `dev.firechip:cobs_codec`) |
+| Swift (macOS/iOS/Linux) | [`CobsCodec`](https://github.com/firechip/cobs_codec_swift) (Swift Package Manager) |
 
 ### Feature comparison
 
@@ -114,22 +115,22 @@ How the family compares with Craig McQueen's reference implementations and other
 ecosystem crates. Legend: ✓ supported · ◐ partial · ○ not supported · · not
 applicable.
 
-| Feature | `cobs_codec_rs` | `cobs_codec` · Dart | `cobs_codec` · Kotlin | cobs-c | cobs · Python | libcobs | cobs · jamesmunns | cobs-codec · alvra |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Basic COBS | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| COBS/R (reduced) | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ |
-| Configurable sentinel | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ |
-| In-place decode | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ○ |
-| Incremental / streaming decode | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ (async) |
-| Frame delimiting | ✓ | ✓ | ✓ | ○ | ○ | ○ | ◐ | ✓ |
-| Size helpers (max length) | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ✓ | ○ |
-| Typed error reporting | ✓ | ✓ | ✓ | ✓ | ✓ | ◐ | ✓ | ✓ |
-| `no_std` / freestanding | ✓ | · | · | ✓ | ○ | ✓ | ✓ | ○ |
-| Zero dependencies | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ |
-| Native framework hooks | ○ | ✓ (`dart:convert`) | ○ | ○ | ○ | ○ | ◐ (serde/defmt) | ✓ (tokio-util) |
-| Verified against these vectors | ✓ | ✓ | ✓ | source | source | ○ | ○ | ○ |
+| Feature | `cobs_codec_rs` | `cobs_codec` · Dart | `cobs_codec` · Kotlin | `CobsCodec` · Swift | cobs-c | cobs · Python | libcobs | cobs · jamesmunns | cobs-codec · alvra |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Basic COBS | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| COBS/R (reduced) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ |
+| Configurable sentinel | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ |
+| In-place decode | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ○ |
+| Incremental / streaming decode | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ✓ | ✓ (async) |
+| Frame delimiting | ✓ | ✓ | ✓ | ✓ | ○ | ○ | ○ | ◐ | ✓ |
+| Size helpers (max length) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ✓ | ○ |
+| Typed error reporting | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ◐ | ✓ | ✓ |
+| `no_std` / freestanding | ✓ | · | · | · | ✓ | ○ | ✓ | ✓ | ○ |
+| Zero dependencies | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ○ | ○ |
+| Native framework hooks | ◐ (serde/defmt) | ✓ (`dart:convert`) | ✓ (java.io/Flow) | ○ | ○ | ○ | ○ | ◐ (serde/defmt) | ✓ (tokio-util) |
+| Verified against these vectors | ✓ | ✓ | ✓ | ✓ | source | source | ○ | ○ | ○ |
 
-The first three columns are the Firechip family. **cobs-c** and **cobs** (Python)
+The first four columns are the Firechip family. **cobs-c** and **cobs** (Python)
 are McQueen's references and the *source* of these vectors. **libcobs** is a
 minimal basic-COBS implementation. **cobs** (jamesmunns) is the de-facto embedded
 Rust crate, rich but with no COBS/R and not dependency-free. **cobs-codec**
